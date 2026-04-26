@@ -1,0 +1,624 @@
+@charset "UTF-8";
+/**
+  Нормализация блочной модели
+ */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+/**
+  Убираем внутренние отступы слева тегам списков,
+  у которых есть атрибут class
+ */
+:where(ul, ol):where([class]) {
+  padding-left: 0;
+}
+
+/**
+  Убираем внешние отступы body и двум другим тегам,
+  у которых есть атрибут class
+ */
+body,
+:where(blockquote, figure, fieldset):where([class]) {
+  margin: 0;
+}
+
+/**
+  Убираем внешние отступы вертикали нужным тегам,
+  у которых есть атрибут class
+ */
+:where(h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl):where([class]) {
+  margin-block: 0;
+  line-height: 1;
+}
+
+:where(dd[class]) {
+  margin-left: 0;
+}
+
+:where(fieldset[class]) {
+  padding: 0;
+  border: none;
+}
+
+/**
+  Убираем стандартный маркер маркированному списку,
+  у которого есть атрибут class
+ */
+:where(ul[class]) {
+  list-style: none;
+}
+
+:where(address[class]) {
+  font-style: normal;
+}
+
+/**
+  Обнуляем вертикальные внешние отступы параграфа,
+  объявляем локальную переменную для внешнего отступа вниз,
+  чтобы избежать взаимодействие с более сложным селектором
+ */
+p {
+  --paragraphMarginBottom: 24px;
+  margin-block: 0;
+}
+
+/**
+  Внешний отступ вниз для параграфа без атрибута class,
+  который расположен не последним среди своих соседних элементов
+ */
+p:where(:not([class]):not(:last-child)) {
+  margin-bottom: var(--paragraphMarginBottom);
+}
+
+/**
+  Упрощаем работу с изображениями и видео
+ */
+img,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/**
+  Наследуем свойства шрифт для полей ввода
+ */
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+html {
+  /**
+    Пригодится в большинстве ситуаций
+    (когда, например, нужно будет "прижать" футер к низу сайта)
+   */
+  height: 100%;
+  /**
+    Убираем скачок интерфейса по горизонтали
+    при появлении / исчезновении скроллбара
+   */
+  scrollbar-gutter: stable;
+  /**
+    Плавный скролл
+   */
+  scroll-behavior: smooth;
+}
+
+body {
+  /**
+    Пригодится в большинстве ситуаций
+    (когда, например, нужно будет "прижать" футер к низу сайта)
+   */
+  min-height: 100%;
+  /**
+    Унифицированный интерлиньяж
+   */
+  line-height: 1.5;
+}
+
+/**
+  Нормализация высоты элемента ссылки при его инспектировании в DevTools
+ */
+a:where([class]) {
+  display: inline-flex;
+}
+
+/**
+  Курсор-рука при наведении на элемент
+ */
+button,
+label {
+  cursor: pointer;
+}
+
+/**
+  Убирает серую подсветку при тапе на мобильных устройствах (iOS/Android)
+ */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/**
+  Приводим к единому цвету svg-элементы
+  (за исключением тех, у которых уже указан
+  атрибут fill со значением 'none' или начинается с 'url')
+ */
+:where([fill]:not([fill=none],
+[fill^=url])) {
+  fill: currentColor;
+}
+
+/**
+  Приводим к единому цвету svg-элементы
+  (за исключением тех, у которых уже указан
+  атрибут stroke со значением 'none')
+ */
+:where([stroke]:not([stroke=none],
+[stroke^=url])) {
+  stroke: currentColor;
+}
+
+/**
+  Чиним баг задержки смены цвета при взаимодействии с svg-элементами
+ */
+svg * {
+  transition-property: fill, stroke;
+}
+
+/**
+  Приведение рамок таблиц в классический 'collapse' вид
+ */
+:where(table) {
+  border-collapse: collapse;
+  border-color: currentColor;
+}
+
+/**
+  Удаляем все анимации и переходы для людей,
+  которые предпочитают их не использовать
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+:root {
+  --color-bg: #202020;
+  --color-blue: #003049;
+  --color-light-blue: blue;
+  --color-text: white;
+  --color-dark-grey: ##303030;
+  --color-light-grey: #B3B3B3;
+  --color-grey-hover: #5A5A5A;
+  --color-grey-text: #D9D9D9;
+  --color-red: #D62828;
+  --color-white: white;
+  --color-green: #14AE5C;
+  --border: 1px solid white;
+  --border-radius: 8px;
+  --border-radius-large: 50px;
+  --font-family-base: 'Akshar', sans-serif;
+  --margin-large: 32px;
+  --margin-medium: 16px;
+  --margin-small: 8px;
+  --padding-large: 32px;
+  --padding-medium: 16px;
+  --padding-small: 8px;
+  --padding: 16px;
+  --padding-content: 140px;
+  --input-height: 48px;
+  --button-height: 48px;
+  --transition-duration: 0.3s;
+  --container-width: 1600px;
+  --container-padding-x: 32px;
+  --container-padding-y: 32px;
+  --input-height: 48px;
+  --input-width: 400px;
+  --button-width: 110px;
+  --header-height: 145px;
+}
+
+.container {
+  max-width: calc(var(--container-width) + var(--container-padding-x) * 2);
+  margin-inline: auto;
+  padding-inline: var(--padding-medium);
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+a,
+button,
+input,
+textarea,
+svg * {
+  transition-duration: var(--transition-duration);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+h4 {
+  font-weight: 400;
+}
+
+h1 {
+  font-size: clamp(16px, 4vw, 64px);
+}
+
+h2 {
+  font-size: clamp(16px, 3vw, 48px);
+}
+
+h3 {
+  font-size: clamp(16px, 2.25vw, 36px);
+}
+
+h4 {
+  font-size: clamp(16px, 1.5vw, 24px);
+}
+
+p {
+  font-size: clamp(16px, 1vw, 16px);
+}
+
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: var(--button-height);
+  width: auto;
+  padding-inline: var(--padding-medium);
+  color: var(--color-text);
+  background-color: var(--color-blue);
+  border: var(--color-blue);
+  border-radius: var(--border-radius);
+}
+@media (hover: hover) {
+  .button:hover {
+    background-color: var(--color-light-blue);
+  }
+}
+@media (hover: none) {
+  .button:active {
+    background-color: var(--color-light-blue);
+  }
+}
+
+.input {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: var(--input-height);
+  width: 100%;
+  max-width: var(--input-width);
+  min-width: 100px;
+  padding-inline: var(--padding-medium);
+  color: var(--color-text);
+  background-color: transparent;
+  border: var(--color-text);
+  border: 1px solid white;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+}
+
+.header {
+  padding-top: var(--padding-medium);
+  row-gap: var(--padding-medium);
+}
+@media (max-width: 800px) {
+  .header {
+    padding-top: var(--padding-small);
+  }
+}
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  -moz-column-gap: var(--padding-medium);
+       column-gap: var(--padding-medium);
+}
+.header__logo {
+  flex-shrink: 0;
+  display: flex;
+}
+.header__logo img {
+  width: 32px;
+  height: auto;
+}
+@media (max-width: 800px) {
+  .header__logo img {
+    min-width: 16px;
+  }
+}
+.header__input {
+  flex: 1;
+  min-width: 120px;
+  max-width: 400px;
+  background: url("../images/icons/search.svg") no-repeat 12px center;
+  background-size: 16px;
+  padding-left: 36px;
+}
+@media (max-width: 800px) {
+  .header__input {
+    min-width: 30px;
+  }
+}
+.header__auth {
+  display: flex;
+  -moz-column-gap: var(--padding-medium);
+       column-gap: var(--padding-medium);
+}
+@media (max-width: 800px) {
+  .header__auth {
+    -moz-column-gap: var(--padding-small);
+         column-gap: var(--padding-small);
+  }
+}
+.header__auth-button {
+  height: var(--button-height);
+  min-width: 48px;
+}
+@media (hover: hover) {
+  .header__auth-button:hover img {
+    opacity: 0.8;
+    transform: scale(1.05);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+}
+@media (hover: none) {
+  .header__auth-button:active img {
+    opacity: 0.8;
+    transform: scale(1.05);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+}
+.header__menu {
+  padding-top: var(--padding-medium);
+}
+.header__menu-list {
+  display: flex;
+  align-items: center;
+  -moz-column-gap: var(--padding-large);
+       column-gap: var(--padding-large);
+}
+.header__menu-link {
+  color: var(--color-grey-text);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  font-size: 24px;
+}
+@media (hover: hover) {
+  .header__menu-link:hover {
+    color: white;
+    transition-duration: inherit;
+  }
+}
+@media (hover: none) {
+  .header__menu-link:active {
+    color: white;
+    transition-duration: inherit;
+  }
+}
+
+.section {
+  align-content: center;
+  padding-bottom: var(--padding-medium);
+}
+.section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section__filters {
+  display: flex;
+  justify-content: space-between;
+  -moz-column-gap: var(--padding-medium);
+       column-gap: var(--padding-medium);
+}
+.section__button {
+  display: flex;
+  -moz-column-gap: var(--padding-small);
+       column-gap: var(--padding-small);
+  background-color: var(--color-dark-grey);
+}
+@media (hover: hover) {
+  .section__button:hover {
+    background-color: var(--color-grey-hover);
+  }
+}
+@media (hover: none) {
+  .section__button:active {
+    background-color: var(--color-grey-hover);
+  }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 5fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  align-items: flex-start;
+  padding-block: var(--padding);
+  display: flex;
+  flex-direction: column;
+  -moz-column-gap: var(--padding);
+       column-gap: var(--padding);
+}
+.sidebar__button {
+  flex-direction: row;
+  align-items: center;
+  -moz-column-gap: var(--padding-small);
+       column-gap: var(--padding-small);
+}
+.sidebar__history-list {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--padding-small);
+}
+.sidebar__history-item {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: background 0.2s ease;
+}
+.sidebar__history-item:hover {
+  background: #3a3a3a;
+}
+.sidebar__history-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.sidebar__history-title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.chat {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 24px;
+  box-sizing: border-box;
+  gap: 16px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  max-width: none;
+  margin: 0;
+}
+
+.chat__header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 10px;
+}
+
+.chat__dialog {
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat__form {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #eaeaea;
+}
+
+.chat__message--user {
+  max-width: 70%;
+  align-self: flex-end;
+}
+
+.chat__title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.chat__message-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.chat__message-body {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #dcdcdc;
+  resize: vertical;
+  font-size: 14px;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.chat__message-body:focus {
+  outline: none;
+  border-color: #4f7cff;
+  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.15);
+}
+
+.footer {
+  padding-block: var(--padding-medium);
+}
+.footer__description {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  row-gap: var(--padding-small);
+  text-align: center;
+}
+.footer__title {
+  display: flex;
+}
+.footer__year {
+  color: grey;
+  display: flex;
+}/*# sourceMappingURL=styles.css.map */
+
+
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: 60px;
+  aspect-ratio: 2;
+  --_g: no-repeat radial-gradient(circle closest-side,#fff 90%,#0000);
+  background: 
+    var(--_g) 0%   50%,
+    var(--_g) 50%  50%,
+    var(--_g) 100% 50%;
+  background-size: calc(100%/3) 50%;
+  animation: l3 1s infinite linear;
+}
+@keyframes l3 {
+    20%{background-position:0%   0%, 50%  50%,100%  50%}
+    40%{background-position:0% 100%, 50%   0%,100%  50%}
+    60%{background-position:0%  50%, 50% 100%,100%   0%}
+    80%{background-position:0%  50%, 50%  50%,100% 100%}
+}

@@ -1,0 +1,29 @@
+@use '../media';
+@use '../mixins';
+
+.section {
+    align-content: center;
+    padding-bottom: var(--padding-medium);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+  }
+
+  &__filters {
+    display: flex;
+    justify-content: space-between;
+    column-gap: var(--padding-medium);
+  }
+
+  &__button {
+    display: flex;
+    column-gap: var(--padding-small);
+    background-color: var(--color-dark-grey);
+    
+    @include media.hover {
+      background-color: var(--color-grey-hover);
+    }
+  }
+}

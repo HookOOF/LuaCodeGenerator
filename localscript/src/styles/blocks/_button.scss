@@ -1,0 +1,16 @@
+@use '../media';
+@use '../mixins';
+.button {
+    @include mixins.flex-center(true);
+    height: var(--button-height);
+    width: auto;
+    padding-inline: var(--padding-medium);
+    color: var(--color-text);
+    background-color: var(--color-blue);
+    border: var(--color-blue);
+    border-radius: var(--border-radius);
+
+    @include media.hover {
+        background-color: var(--color-light-blue);
+    }
+}

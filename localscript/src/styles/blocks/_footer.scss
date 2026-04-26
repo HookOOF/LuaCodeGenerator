@@ -1,0 +1,18 @@
+.footer {
+    padding-block: var(--padding-medium);
+    &__description {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        row-gap: var(--padding-small);
+        text-align: center;
+    }
+    &__title {
+        display: flex;
+    }
+    &__year {
+        color: grey;
+        display: flex;
+    }
+}

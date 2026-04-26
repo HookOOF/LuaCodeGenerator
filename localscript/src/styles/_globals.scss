@@ -1,0 +1,48 @@
+@use './mixins';
+body {
+    font-family: var(--font-family-base);
+    font-weight: 400;
+    font-size: 16px;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+}
+
+a,
+button,
+input,
+textarea,
+svg * {
+    transition-duration: var(--transition-duration);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+h1, h2, h3 {
+    font-weight: 700;
+}
+h4 {
+    font-weight: 400;
+}
+
+h1 {
+    @include mixins.fluid-text(64);
+}
+
+h2 {
+    @include mixins.fluid-text(48);
+}
+
+h3 {
+    @include mixins.fluid-text(36);
+}
+
+h4 {
+    @include mixins.fluid-text(24);
+}
+
+p {
+    @include mixins.fluid-text(16);
+}

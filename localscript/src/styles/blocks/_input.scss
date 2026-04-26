@@ -1,0 +1,17 @@
+@use '../media';
+@use '../mixins';
+.input {
+    @include mixins.flex-center(true);
+    height: var(--input-height);
+    width: 100%;
+    max-width: var(--input-width);
+    min-width: 100px;
+    padding-inline: var(--padding-medium);
+    color: var(--color-text);
+    background-color: transparent;
+    border: var(--color-text);
+    border: 1px solid white;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+
+}
