@@ -1,0 +1,30 @@
+{
+  "id": "c3d00841-e1bf-4779-9e50-0da65ce3b939",
+  "title": "Из полученного списка email получи последний.\n{\"wf\": {\"vars\"",
+  "summary": null,
+  "summarized_count": 0,
+  "created_at": "2026-04-13T17:30:41.321617+00:00",
+  "updated_at": "2026-04-13T17:30:49.444884+00:00",
+  "messages": [
+    {
+      "id": "2efd43c3-bad1-4593-bfd7-fc20fd5b3f20",
+      "session_id": "c3d00841-e1bf-4779-9e50-0da65ce3b939",
+      "role": "user",
+      "content": "Из полученного списка email получи последний.\n{\"wf\": {\"vars\": {\"emails\": [\"user1@example.com\",\"user2@example.com\",\"user3@example.com\"]}}}",
+      "lua_code": null,
+      "is_valid": null,
+      "is_question": false,
+      "created_at": "2026-04-13T17:30:41.441171+00:00"
+    },
+    {
+      "id": "4eedeba9-cd84-46ec-aa9c-6d5eb30cedac",
+      "session_id": "c3d00841-e1bf-4779-9e50-0da65ce3b939",
+      "role": "assistant",
+      "content": "```lua\nreturn wf.vars.emails[#wf.vars.emails]\n```",
+      "lua_code": "return wf.vars.emails[#wf.vars.emails]",
+      "is_valid": true,
+      "is_question": false,
+      "created_at": "2026-04-13T17:30:49.444875+00:00"
+    }
+  ]
+}

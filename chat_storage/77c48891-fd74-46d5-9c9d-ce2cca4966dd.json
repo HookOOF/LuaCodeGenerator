@@ -1,0 +1,48 @@
+{
+  "id": "77c48891-fd74-46d5-9c9d-ce2cca4966dd",
+  "title": "Напиши функцию для подсчета суммы элементов массива numbers.",
+  "created_at": "2026-04-13T15:19:45.029284+00:00",
+  "updated_at": "2026-04-13T15:19:47.285706+00:00",
+  "messages": [
+    {
+      "id": "26e8fe63-3e18-4b25-ba19-61a7b38a14c5",
+      "session_id": "77c48891-fd74-46d5-9c9d-ce2cca4966dd",
+      "role": "user",
+      "content": "Напиши функцию для подсчета суммы элементов массива numbers.\n{\"wf\":{\"vars\":{\"numbers\":[1,2,3,4,5]}}}",
+      "lua_code": null,
+      "is_valid": null,
+      "is_question": false,
+      "created_at": "2026-04-13T15:19:45.059106+00:00"
+    },
+    {
+      "id": "c936b83b-fc04-45ab-877a-0e6a5cee31b5",
+      "session_id": "77c48891-fd74-46d5-9c9d-ce2cca4966dd",
+      "role": "assistant",
+      "content": "```lua\nfunction sumArray(numbers)\n  local sum = 0\n  for _, number in ipairs(numbers) do\n    sum = sum + number\n  end\n  return sum\nend\nreturn sumArray(wf.vars.numbers)\n```",
+      "lua_code": "function sumArray(numbers)\n  local sum = 0\n  for _, number in ipairs(numbers) do\n    sum = sum + number\n  end\n  return sum\nend\nreturn sumArray(wf.vars.numbers)",
+      "is_valid": true,
+      "is_question": false,
+      "created_at": "2026-04-13T15:19:46.071265+00:00"
+    },
+    {
+      "id": "52db8774-4683-441f-b4af-05f6954e530c",
+      "session_id": "77c48891-fd74-46d5-9c9d-ce2cca4966dd",
+      "role": "user",
+      "content": "Добавь ещё вычисление среднего значения и верни таблицу с sum и avg",
+      "lua_code": null,
+      "is_valid": null,
+      "is_question": false,
+      "created_at": "2026-04-13T15:19:46.089830+00:00"
+    },
+    {
+      "id": "cf89aab8-e390-4475-9d9d-082396f0d1cc",
+      "session_id": "77c48891-fd74-46d5-9c9d-ce2cca4966dd",
+      "role": "assistant",
+      "content": "```lua\nfunction calculateSumAndAverage(numbers)\n  local sum = 0\n  for _, number in ipairs(numbers) do\n    sum = sum + number\n  end\n  local avg = sum / #numbers\n  return {sum = sum, avg = avg}\nend\nreturn calculateSumAndAverage(wf.vars.numbers)\n```",
+      "lua_code": "function calculateSumAndAverage(numbers)\n  local sum = 0\n  for _, number in ipairs(numbers) do\n    sum = sum + number\n  end\n  local avg = sum / #numbers\n  return {sum = sum, avg = avg}\nend\nreturn calculateSumAndAverage(wf.vars.numbers)",
+      "is_valid": true,
+      "is_question": false,
+      "created_at": "2026-04-13T15:19:47.285700+00:00"
+    }
+  ]
+}
