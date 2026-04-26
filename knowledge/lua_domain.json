@@ -1,0 +1,405 @@
+[
+  {
+    "category": "example",
+    "text": "Task: Преобразуй время из формата YYYYMMDD и HHMMSS в строку ISO 8601.\nContext: wf.vars.json.IDOC.ZCDF_HEAD.DATUM = 'YYYYMMDD', wf.vars.json.IDOC.ZCDF_HEAD.TIME = 'HHMMSS'.\nLua code:\nDATUM = wf.vars.json.IDOC.ZCDF_HEAD.DATUM\nTIME = wf.vars.json.IDOC.ZCDF_HEAD.TIME\nlocal function safe_sub(str, start, finish)\n  local s = string.sub(str, start, math.min(finish, #str))\n  return s ~= \"\" and s or \"00\"\nend\nyear = safe_sub(DATUM, 1, 4)\nmonth = safe_sub(DATUM, 5, 6)\nday = safe_sub(DATUM, 7, 8)\nhour = safe_sub(TIME, 1, 2)\nminute = safe_sub(TIME, 3, 4)\nsecond = safe_sub(TIME, 5, 6)\niso_date = string.format('%s-%s-%sT%s:%s:%s.00000Z', year, month, day, hour, minute, second)\nreturn iso_date"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй структуру так, чтобы все items в ZCDF_PACKAGES всегда были массивами.\nContext: wf.vars.json.IDOC.ZCDF_HEAD.ZCDF_PACKAGES — массив пакетов, items может быть объектом или массивом.\nLua code:\nfunction ensureArray(t)\n  if type(t) ~= \"table\" then\n    return {t}\n  end\n  local isArray = true\n  for k, v in pairs(t) do\n    if type(k) ~= \"number\" or math.floor(k) ~= k then\n      isArray = false\n      break\n    end\n  end\n  return isArray and t or {t}\nend\nfunction ensureAllItemsAreArrays(objectsArray)\n  if type(objectsArray) ~= \"table\" then\n    return objectsArray\n  end\n  for _, obj in ipairs(objectsArray) do\n    if type(obj) == \"table\" and obj.items then\n      obj.items = ensureArray(obj.items)\n    end\n  end\n  return objectsArray\nend\nreturn ensureAllItemsAreArrays(wf.vars.json.IDOC.ZCDF_HEAD.ZCDF_PACKAGES)"
+  },
+  {
+    "category": "example",
+    "text": "Task: Добавь переменную с квадратом числа.\nContext: число задано как строка '5'.\nLua code:\nlocal n = tonumber('5')\nreturn n * n"
+  },
+  {
+    "category": "example",
+    "text": "Task: Конвертируй время в переменной recallTime в unix-формат.\nContext: wf.initVariables.recallTime содержит ISO 8601 дату '2023-10-15T15:30:00+00:00'.\nLua code:\nlocal iso_time = wf.initVariables.recallTime\nlocal days_in_month = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}\nif not iso_time or not iso_time:match(\"^%d%d%d%d%-%d%d%-%d%dT\") then\n  return nil\nend\nlocal function is_leap_year(year)\n  return (year % 4 == 0 and year % 100 ~= 0) or (year % 400 == 0)\nend\nlocal function days_since_epoch(year, month, day)\n  local days = 0\n  for y = 1970, year - 1 do\n    days = days + (is_leap_year(y) and 366 or 365)\n  end\n  for m = 1, month - 1 do\n    days = days + days_in_month[m]\n    if m == 2 and is_leap_year(year) then\n      days = days + 1\n    end\n  end\n  days = days + (day - 1)\n  return days\nend\nlocal function parse_iso8601_to_epoch(iso_str)\n  if not iso_str then error(\"Date is nil\") end\n  local year, month, day, hour, min, sec, ms, offset_sign, offset_hour, offset_min =\n    iso_str:match(\"(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)%.(%d+)([+-])(%d+):(%d+)\")\n  if not year then\n    year, month, day, hour, min, sec, offset_sign, offset_hour, offset_min =\n      iso_str:match(\"(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)([+-])(%d+):(%d+)\")\n    ms = 0\n  end\n  if not year then error(\"Cannot parse date: \" .. tostring(iso_str)) end\n  year = tonumber(year); month = tonumber(month); day = tonumber(day)\n  hour = tonumber(hour); min = tonumber(min); sec = tonumber(sec)\n  offset_hour = tonumber(offset_hour); offset_min = tonumber(offset_min)\n  local total_days = days_since_epoch(year, month, day)\n  local total_seconds = total_days * 86400 + hour * 3600 + min * 60 + sec\n  local offset_seconds = offset_hour * 3600 + offset_min * 60\n  if offset_sign == \"-\" then offset_seconds = -offset_seconds end\n  return total_seconds - offset_seconds\nend\nlocal epoch_seconds = parse_iso8601_to_epoch(iso_time)\nreturn epoch_seconds"
+  },
+  {
+    "category": "example",
+    "text": "Task: Посчитай сумму всех значений поля amount в массиве заказов.\nContext: wf.vars.orders = [{\"id\":1,\"amount\":150},{\"id\":2,\"amount\":230},{\"id\":3,\"amount\":80}]\nLua code:\nlocal total = 0\nfor _, order in ipairs(wf.vars.orders) do\n  local amt = tonumber(order.amount) or 0\n  total = total + amt\nend\nreturn total"
+  },
+  {
+    "category": "example",
+    "text": "Task: Собери ФИО из отдельных полей в одну строку.\nContext: wf.vars.lastName = \"Иванов\", wf.vars.firstName = \"Пётр\", wf.vars.middleName = \"Сергеевич\"\nLua code:\nlocal parts = {}\nif wf.vars.lastName and wf.vars.lastName ~= \"\" then\n  table.insert(parts, wf.vars.lastName)\nend\nif wf.vars.firstName and wf.vars.firstName ~= \"\" then\n  table.insert(parts, wf.vars.firstName)\nend\nif wf.vars.middleName and wf.vars.middleName ~= \"\" then\n  table.insert(parts, wf.vars.middleName)\nend\nreturn table.concat(parts, \" \")"
+  },
+  {
+    "category": "example",
+    "text": "Task: Посчитай количество элементов в массиве, у которых статус равен 'active'.\nContext: wf.vars.users = [{\"name\":\"A\",\"status\":\"active\"},{\"name\":\"B\",\"status\":\"inactive\"},{\"name\":\"C\",\"status\":\"active\"}]\nLua code:\nlocal count = 0\nfor _, user in ipairs(wf.vars.users) do\n  if user.status == \"active\" then\n    count = count + 1\n  end\nend\nreturn count"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй массив объектов — оставь только поля name и email.\nContext: wf.vars.contacts = [{\"name\":\"Иван\",\"email\":\"ivan@mail.ru\",\"phone\":\"+7123\",\"age\":30}]\nLua code:\nlocal result = _utils.array.new()\nfor _, c in ipairs(wf.vars.contacts) do\n  table.insert(result, { name = c.name, email = c.email })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Сгруппируй элементы массива по полю department.\nContext: wf.vars.employees = [{\"name\":\"A\",\"department\":\"IT\"},{\"name\":\"B\",\"department\":\"HR\"},{\"name\":\"C\",\"department\":\"IT\"}]\nLua code:\nlocal groups = {}\nfor _, emp in ipairs(wf.vars.employees) do\n  local dept = emp.department or \"unknown\"\n  if not groups[dept] then\n    groups[dept] = _utils.array.new()\n  end\n  table.insert(groups[dept], emp)\nend\nreturn groups"
+  },
+  {
+    "category": "example",
+    "text": "Task: Объедини два массива в один.\nContext: wf.vars.list1 = [1,2,3], wf.vars.list2 = [4,5,6]\nLua code:\nlocal result = _utils.array.new()\nfor _, v in ipairs(wf.vars.list1) do\n  table.insert(result, v)\nend\nfor _, v in ipairs(wf.vars.list2) do\n  table.insert(result, v)\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Найди первый элемент в массиве, у которого поле id совпадает с искомым.\nContext: wf.vars.items = [{\"id\":10,\"val\":\"a\"},{\"id\":20,\"val\":\"b\"}], wf.vars.searchId = 20\nLua code:\nlocal target = wf.vars.searchId\nfor _, item in ipairs(wf.vars.items) do\n  if item.id == target then\n    return item\n  end\nend\nreturn nil"
+  },
+  {
+    "category": "example",
+    "text": "Task: Проверь, содержится ли значение в массиве.\nContext: wf.vars.allowedRoles = [\"admin\",\"editor\",\"viewer\"], wf.vars.userRole = \"editor\"\nLua code:\nlocal role = wf.vars.userRole\nfor _, r in ipairs(wf.vars.allowedRoles) do\n  if r == role then\n    return true\n  end\nend\nreturn false"
+  },
+  {
+    "category": "example",
+    "text": "Task: Извлеки уникальные значения поля city из массива.\nContext: wf.vars.clients = [{\"name\":\"A\",\"city\":\"Москва\"},{\"name\":\"B\",\"city\":\"СПб\"},{\"name\":\"C\",\"city\":\"Москва\"}]\nLua code:\nlocal seen = {}\nlocal result = _utils.array.new()\nfor _, client in ipairs(wf.vars.clients) do\n  local city = client.city\n  if city and not seen[city] then\n    seen[city] = true\n    table.insert(result, city)\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Отсортируй массив объектов по полю price по возрастанию.\nContext: wf.vars.products = [{\"name\":\"B\",\"price\":200},{\"name\":\"A\",\"price\":100},{\"name\":\"C\",\"price\":150}]\nLua code:\nlocal items = wf.vars.products\ntable.sort(items, function(a, b)\n  return (tonumber(a.price) or 0) < (tonumber(b.price) or 0)\nend)\nreturn items"
+  },
+  {
+    "category": "example",
+    "text": "Task: Собери строку из значений поля name через запятую.\nContext: wf.vars.tags = [{\"name\":\"lua\"},{\"name\":\"code\"},{\"name\":\"test\"}]\nLua code:\nlocal names = _utils.array.new()\nfor _, tag in ipairs(wf.vars.tags) do\n  if tag.name and tag.name ~= \"\" then\n    table.insert(names, tag.name)\n  end\nend\nreturn table.concat(names, \", \")"
+  },
+  {
+    "category": "example",
+    "text": "Task: Верни значение переменной или значение по умолчанию, если она пуста.\nContext: wf.vars.userName может быть nil или пустой строкой.\nLua code:\nlocal name = wf.vars.userName\nif name == nil or name == \"\" then\n  return \"Гость\"\nend\nreturn name"
+  },
+  {
+    "category": "example",
+    "text": "Task: Раздели строку по разделителю и верни массив.\nContext: wf.vars.csvLine = \"apple;banana;cherry\", разделитель — точка с запятой.\nLua code:\nlocal str = wf.vars.csvLine\nlocal result = _utils.array.new()\nif not str or str == \"\" then\n  return result\nend\nfor part in string.gmatch(str, \"([^;]+)\") do\n  table.insert(result, part)\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Отформатируй число как строку с двумя знаками после запятой.\nContext: wf.vars.total = 1234.5\nLua code:\nreturn string.format(\"%.2f\", wf.vars.total)"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй строковое значение 'true'/'false' в boolean.\nContext: wf.vars.flagStr = \"true\"\nLua code:\nlocal s = wf.vars.flagStr\nif s == \"true\" or s == \"1\" or s == \"yes\" then\n  return true\nend\nreturn false"
+  },
+  {
+    "category": "example",
+    "text": "Task: Верни разное значение в зависимости от статуса.\nContext: wf.vars.status может быть \"new\", \"in_progress\", \"done\".\nLua code:\nlocal status = wf.vars.status\nif status == \"new\" then\n  return \"Новая заявка\"\nelseif status == \"in_progress\" then\n  return \"В работе\"\nelseif status == \"done\" then\n  return \"Завершена\"\nelse\n  return \"Неизвестный статус\"\nend"
+  },
+  {
+    "category": "example",
+    "text": "Task: Создай глубокую копию таблицы.\nContext: wf.vars.original — произвольная вложенная таблица.\nLua code:\nlocal function deepCopy(orig)\n  if type(orig) ~= \"table\" then\n    return orig\n  end\n  local copy = {}\n  for k, v in pairs(orig) do\n    copy[k] = deepCopy(v)\n  end\n  return copy\nend\nreturn deepCopy(wf.vars.original)"
+  },
+  {
+    "category": "example",
+    "text": "Task: Из вложенного массива массивов сделай плоский массив.\nContext: wf.vars.nested = [[1,2],[3,4],[5]]\nLua code:\nlocal result = _utils.array.new()\nfor _, inner in ipairs(wf.vars.nested) do\n  if type(inner) == \"table\" then\n    for _, val in ipairs(inner) do\n      table.insert(result, val)\n    end\n  else\n    table.insert(result, inner)\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Посчитай процент выполненных задач.\nContext: wf.vars.tasks = [{\"done\":true},{\"done\":false},{\"done\":true},{\"done\":true}]\nLua code:\nlocal total = #wf.vars.tasks\nif total == 0 then\n  return 0\nend\nlocal done = 0\nfor _, task in ipairs(wf.vars.tasks) do\n  if task.done == true then\n    done = done + 1\n  end\nend\nreturn math.floor(done / total * 100)"
+  },
+  {
+    "category": "example",
+    "text": "Task: Приведи номер телефона к формату +7XXXXXXXXXX.\nContext: wf.vars.phone = \"8 (912) 345-67-89\"\nLua code:\nlocal phone = wf.vars.phone or \"\"\nlocal digits = string.gsub(phone, \"%D\", \"\")\nif #digits == 11 and string.sub(digits, 1, 1) == \"8\" then\n  digits = \"7\" .. string.sub(digits, 2)\nelseif #digits == 10 then\n  digits = \"7\" .. digits\nend\nreturn \"+\" .. digits"
+  },
+  {
+    "category": "example",
+    "text": "Task: Подсчитай итоговую сумму по вложенному массиву позиций заказа.\nContext: wf.vars.order = {\"items\":[{\"qty\":2,\"price\":100},{\"qty\":1,\"price\":500}]}\nLua code:\nlocal total = 0\nfor _, item in ipairs(wf.vars.order.items) do\n  local qty = tonumber(item.qty) or 0\n  local price = tonumber(item.price) or 0\n  total = total + qty * price\nend\nreturn total"
+  },
+  {
+    "category": "example",
+    "text": "Task: Из результата REST-запроса извлеки массив записей, обработав пагинацию.\nContext: wf.vars.response = {\"result\":[{\"id\":1},{\"id\":2}],\"next\":51}, wf.vars.allResults — накопленный массив.\nLua code:\nlocal all = wf.vars.allResults or _utils.array.new()\nlocal page = wf.vars.response.result\nif page then\n  for _, item in ipairs(page) do\n    table.insert(all, item)\n  end\nend\nreturn all"
+  },
+  {
+    "category": "example",
+    "text": "Task: Построй словарь (map) из массива по полю id.\nContext: wf.vars.records = [{\"id\":\"a1\",\"val\":10},{\"id\":\"b2\",\"val\":20}]\nLua code:\nlocal map = {}\nfor _, rec in ipairs(wf.vars.records) do\n  if rec.id then\n    map[rec.id] = rec\n  end\nend\nreturn map"
+  },
+  {
+    "category": "example",
+    "text": "Task: Замени все вхождения подстроки в строке.\nContext: wf.vars.template = \"Привет, {name}! Добро пожаловать, {name}!\", wf.vars.userName = \"Алексей\"\nLua code:\nlocal result = string.gsub(wf.vars.template, \"{name}\", wf.vars.userName)\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй массив строк в одну строку с нумерацией.\nContext: wf.vars.steps = [\"Открыть\",\"Проверить\",\"Отправить\"]\nLua code:\nlocal lines = _utils.array.new()\nfor i, step in ipairs(wf.vars.steps) do\n  table.insert(lines, string.format(\"%d. %s\", i, step))\nend\nreturn table.concat(lines, \"\\n\")"
+  },
+  {
+    "category": "example",
+    "text": "Task: Удали дубликаты из массива строк.\nContext: wf.vars.tags = [\"lua\",\"python\",\"lua\",\"go\",\"python\"]\nLua code:\nlocal seen = {}\nlocal result = _utils.array.new()\nfor _, tag in ipairs(wf.vars.tags) do\n  if not seen[tag] then\n    seen[tag] = true\n    table.insert(result, tag)\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Обрежь строку до максимальной длины и добавь многоточие.\nContext: wf.vars.description = \"Очень длинное описание товара которое нужно сократить\", макс. длина 20.\nLua code:\nlocal text = wf.vars.description or \"\"\nlocal maxLen = 20\nif #text <= maxLen then\n  return text\nend\nreturn string.sub(text, 1, maxLen) .. \"...\""
+  },
+  {
+    "category": "example",
+    "text": "Task: Переименуй ключи в объектах массива (маппинг полей).\nContext: wf.vars.data = [{\"firstName\":\"Ivan\",\"lastName\":\"Petrov\"}], нужно first_name и last_name.\nLua code:\nlocal result = _utils.array.new()\nfor _, item in ipairs(wf.vars.data) do\n  table.insert(result, {\n    first_name = item.firstName,\n    last_name = item.lastName\n  })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Из входных переменных собери тело REST-запроса.\nContext: wf.initVariables.userId = \"123\", wf.initVariables.action = \"activate\"\nLua code:\nreturn {\n  user_id = wf.initVariables.userId,\n  action = wf.initVariables.action,\n  timestamp = wf.vars.currentTime\n}"
+  },
+  {
+    "category": "example",
+    "text": "Task: Проверь, что все обязательные поля заполнены, верни список пустых.\nContext: wf.vars.form = {\"name\":\"Иван\",\"email\":\"\",\"phone\":null}, обязательные: name, email, phone.\nLua code:\nlocal form = wf.vars.form\nlocal required = {\"name\", \"email\", \"phone\"}\nlocal missing = _utils.array.new()\nfor _, field in ipairs(required) do\n  local val = form[field]\n  if val == nil or val == \"\" then\n    table.insert(missing, field)\n  end\nend\nreturn missing"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй сумму в копейках в строку вида '1 234,56 руб.'.\nContext: wf.vars.amountKopecks = 123456\nLua code:\nlocal kopecks = wf.vars.amountKopecks or 0\nlocal rubles = math.floor(kopecks / 100)\nlocal kop = kopecks % 100\nlocal rub_str = tostring(rubles)\nlocal formatted = \"\"\nlocal len = #rub_str\nfor i = 1, len do\n  if i > 1 and (len - i + 1) % 3 == 0 then\n    formatted = formatted .. \" \"\n  end\n  formatted = formatted .. string.sub(rub_str, i, i)\nend\nreturn string.format(\"%s,%02d руб.\", formatted, kop)"
+  },
+  {
+    "category": "example",
+    "text": "Task: Инвертируй boolean-значение переменной.\nContext: wf.vars.isActive = true\nLua code:\nreturn not wf.vars.isActive"
+  },
+  {
+    "category": "example",
+    "text": "Task: Извлеки domain из email-адреса.\nContext: wf.vars.email = \"user@example.com\"\nLua code:\nlocal email = wf.vars.email or \"\"\nlocal domain = string.match(email, \"@(.+)$\")\nreturn domain"
+  },
+  {
+    "category": "example",
+    "text": "Task: Добавь к существующему коду обработку случая, когда массив пустой.\nContext: Existing code:\nlocal result = _utils.array.new()\nfor _, item in ipairs(wf.vars.items) do\n  table.insert(result, item.name)\nend\nreturn table.concat(result, \", \")\nLua code (modified):\nlocal items = wf.vars.items\nif not items or #items == 0 then\n  return \"\"\nend\nlocal result = _utils.array.new()\nfor _, item in ipairs(items) do\n  table.insert(result, item.name)\nend\nreturn table.concat(result, \", \")"
+  },
+  {
+    "category": "example",
+    "text": "Task: Фильтруй массив по диапазону дат (строки ISO 8601).\nContext: wf.vars.events = [{\"date\":\"2024-01-15\",\"name\":\"A\"},{\"date\":\"2024-03-20\",\"name\":\"B\"}], wf.vars.dateFrom = \"2024-02-01\", wf.vars.dateTo = \"2024-12-31\"\nLua code:\nlocal result = _utils.array.new()\nlocal from = wf.vars.dateFrom\nlocal to = wf.vars.dateTo\nfor _, event in ipairs(wf.vars.events) do\n  if event.date >= from and event.date <= to then\n    table.insert(result, event)\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй плоский массив в массив объектов с полем value.\nContext: wf.vars.ids = [10, 20, 30]\nLua code:\nlocal result = _utils.array.new()\nfor _, id in ipairs(wf.vars.ids) do\n  table.insert(result, { value = id })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Верни первые N элементов массива.\nContext: wf.vars.items = [{\"id\":1},{\"id\":2},{\"id\":3},{\"id\":4},{\"id\":5}], wf.vars.limit = 3\nLua code:\nlocal result = _utils.array.new()\nlocal limit = tonumber(wf.vars.limit) or #wf.vars.items\nfor i, item in ipairs(wf.vars.items) do\n  if i > limit then break end\n  table.insert(result, item)\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Посчитай количество слов в строке.\nContext: wf.vars.text = \"Привет мир это тест\"\nLua code:\nlocal text = wf.vars.text or \"\"\nlocal count = 0\nfor _ in string.gmatch(text, \"%S+\") do\n  count = count + 1\nend\nreturn count"
+  },
+  {
+    "category": "example",
+    "text": "Task: Создай новый массив, применив скидку к каждому товару.\nContext: wf.vars.products = [{\"name\":\"A\",\"price\":1000},{\"name\":\"B\",\"price\":500}], wf.vars.discountPercent = 10\nLua code:\nlocal discount = (tonumber(wf.vars.discountPercent) or 0) / 100\nlocal result = _utils.array.new()\nfor _, p in ipairs(wf.vars.products) do\n  local price = tonumber(p.price) or 0\n  table.insert(result, {\n    name = p.name,\n    price = price,\n    discountedPrice = math.floor(price * (1 - discount))\n  })\nend\nreturn result"
+  },
+
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Accessing the last element of an array.\nUse #array to get length, then index: array[#array]\nExample: return wf.vars.items[#wf.vars.items]"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Filtering an array by condition.\nCreate a new result array, iterate with ipairs, insert matching items:\nlocal result = _utils.array.new()\nfor _, item in ipairs(wf.vars.source) do\n  if <condition> then\n    table.insert(result, item)\n  end\nend\nreturn result"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Removing fields from tables in an array.\nIterate the array, for each entry iterate its keys, set unwanted keys to nil:\nfor _, entry in pairs(array) do\n  for key, _ in pairs(entry) do\n    if key ~= \"keep1\" and key ~= \"keep2\" then\n      entry[key] = nil\n    end\n  end\nend"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Checking if a value is non-empty.\nA value is considered 'present' if it is not nil AND not empty string:\nif value ~= nil and value ~= \"\" then ... end\n\nFor null/nil checking: if value == nil then ... end"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: String parsing with string.sub and string.format.\nExtract substrings by position: string.sub(str, start, finish)\nFormat output: string.format('%s-%s', part1, part2)\nPattern matching: string.match(str, pattern) with Lua patterns."
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Type checking and ensuring array type.\nfunction ensureArray(t)\n  if type(t) ~= \"table\" then return {t} end\n  for k in pairs(t) do\n    if type(k) ~= \"number\" then return {t} end\n  end\n  return t\nend"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Safe nested field access.\nWhen accessing deeply nested fields, check each level for nil:\nlocal data = wf.vars.response\nif data and data.result and data.result.items then\n  return data.result.items\nend\nreturn nil"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Accumulating a result from paginated REST responses.\nKeep the accumulated array in wf.vars, append new page items:\nlocal all = wf.vars.accumulated or _utils.array.new()\nfor _, item in ipairs(wf.vars.pageData) do\n  table.insert(all, item)\nend\nreturn all"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Building a lookup set from an array for O(1) membership checks.\nlocal set = {}\nfor _, v in ipairs(sourceArray) do\n  set[v] = true\nend\n-- Then check: if set[value] then ... end"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Mapping (transforming) each element of an array.\nlocal result = _utils.array.new()\nfor _, item in ipairs(wf.vars.source) do\n  table.insert(result, transformFunction(item))\nend\nreturn result"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Splitting a string by delimiter.\nlocal result = _utils.array.new()\nfor part in string.gmatch(str, '([^' .. delimiter .. ']+)') do\n  table.insert(result, part)\nend\nreturn result"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Nil-coalescing (default value).\nUse 'or' to provide a fallback:\nlocal name = wf.vars.name or \"default\"\nlocal count = tonumber(wf.vars.count) or 0\nlocal items = wf.vars.items or _utils.array.new()"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Counter / tally of occurrences.\nlocal counts = {}\nfor _, item in ipairs(wf.vars.data) do\n  local key = item.category\n  counts[key] = (counts[key] or 0) + 1\nend\nreturn counts"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Min / Max from an array of objects.\nlocal best = nil\nfor _, item in ipairs(wf.vars.items) do\n  local val = tonumber(item.score) or 0\n  if not best or val > best then\n    best = val\n  end\nend\nreturn best"
+  },
+
+  {
+    "category": "common_error",
+    "text": "Common error: Using JsonPath instead of dot-notation.\nWrong: $.wf.vars.data.items[0].name\nWrong: $['wf']['vars']['data']\nCorrect: wf.vars.data.items[1].name\nNote: Lua arrays are 1-indexed, not 0-indexed."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Using require() to import modules.\nWrong: local json = require(\"json\")\nWrong: local http = require(\"socket.http\")\nThe LowCode runtime does not support require(). All available functions are global."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Using os.time() or os.date() for date operations.\nWrong: return os.time()\nWrong: return os.date(\"%Y-%m-%d\")\nThe os library is not available. Parse and build dates manually using string functions."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Using print() instead of return.\nWrong: print(wf.vars.result)\nCorrect: return wf.vars.result\nThe LowCode platform captures the return value, not stdout."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Returning a plain table {} as an array.\nWrong:\nlocal result = {}\nfor _, v in ipairs(source) do table.insert(result, v) end\nreturn result\nCorrect:\nlocal result = _utils.array.new()\nfor _, v in ipairs(source) do table.insert(result, v) end\nreturn result\nWithout _utils.array.new(), the platform may serialize the result as an object, not an array."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Using 0-based indexing.\nWrong: return wf.vars.items[0]\nCorrect: return wf.vars.items[1]\nLua arrays are 1-indexed. The first element is at index 1, the last at #array."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Not handling nil before string operations.\nWrong: return string.lower(wf.vars.name)\nIf wf.vars.name is nil, this throws an error.\nCorrect:\nlocal name = wf.vars.name\nif not name then return nil end\nreturn string.lower(name)"
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Using # on a table with non-sequential keys.\n# only counts the array part (sequential integer keys starting from 1).\nFor a dictionary/map, use a manual count:\nlocal count = 0\nfor _ in pairs(t) do count = count + 1 end"
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Modifying a table while iterating with ipairs.\nWrong:\nfor i, v in ipairs(items) do\n  if v.remove then table.remove(items, i) end\nend\nThis skips elements. Correct approach — build a new array:\nlocal result = _utils.array.new()\nfor _, v in ipairs(items) do\n  if not v.remove then table.insert(result, v) end\nend\nreturn result"
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Concatenating nil values.\nWrong: return wf.vars.first .. \" \" .. wf.vars.last\nIf either variable is nil, this throws an error.\nCorrect: return (wf.vars.first or \"\") .. \" \" .. (wf.vars.last or \"\")"
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Comparing number with string.\nIf a value comes as a string (e.g. \"42\"), direct comparison with a number fails:\nWrong: if wf.vars.count == 42 then\nCorrect: if tonumber(wf.vars.count) == 42 then\nAlways use tonumber() when a numeric value might arrive as a string."
+  },
+  {
+    "category": "common_error",
+    "text": "Common error: Inventing globals that don't exist.\nWrong: json.encode(data), json.decode(str)\nWrong: http.get(url)\nWrong: base64.encode(str)\nWrong: uuid.generate()\nThese libraries do not exist in the LowCode runtime. Use only available functions."
+  },
+
+  {
+    "category": "lua_reference",
+    "text": "Lua string functions reference:\n- string.sub(s, i, j): substring from i to j\n- string.format(fmt, ...): formatted output\n- string.match(s, pattern): pattern matching, returns captures\n- string.find(s, pattern): find pattern position\n- string.gsub(s, pattern, repl): global substitution\n- #s: string length\n- string.upper(s), string.lower(s): case conversion\n- string.rep(s, n): repeat string\n- string.byte(s, i): char code at position\n- string.char(n): char from code\n- string.reverse(s): reverse string\n- string.gmatch(s, pattern): iterator over all matches"
+  },
+  {
+    "category": "lua_reference",
+    "text": "Lua table functions reference:\n- table.insert(t, value): append element\n- table.insert(t, pos, value): insert at position\n- table.remove(t, pos): remove element at position, returns it\n- table.sort(t, comp): sort in-place; comp(a,b) returns true if a < b\n- table.concat(t, sep): concatenate array elements with separator\n- #t: array length (sequential integer keys from 1)\n- pairs(t): iterate all key-value pairs (unordered)\n- ipairs(t): iterate array part (1, 2, 3, ...) in order\n- next(t, key): next key-value pair after key; next(t, nil) gives first pair\n- unpack(t): returns all array elements as multiple values"
+  },
+  {
+    "category": "lua_reference",
+    "text": "Lua math and type functions:\n- math.floor(x), math.ceil(x): rounding down/up\n- math.abs(x): absolute value\n- math.max(...), math.min(...): max/min of arguments\n- math.fmod(x, y): modulo (also available as x % y)\n- math.huge: infinity constant\n- math.pi: pi constant\n- math.sqrt(x): square root\n- math.random(), math.random(n), math.random(m, n): random numbers\n- tonumber(s): string to number (returns nil on failure)\n- tostring(v): any value to string\n- type(v): returns type name as string (\"nil\",\"number\",\"string\",\"boolean\",\"table\",\"function\")"
+  },
+  {
+    "category": "lua_reference",
+    "text": "Lua pattern matching characters:\n%d=digit, %a=letter, %w=alphanumeric, %s=whitespace, %p=punctuation, %l=lowercase, %u=uppercase\n.=any char, *=0+ greedy, +=1+, -=0+ lazy, ?=0 or 1\n^=start of string, $=end of string, ()=captures\n%b()=balanced match between two characters\nEscape special characters with %: %.=literal dot, %%=literal percent\nExamples:\n  str:match(\"(%d+)-(%d+)-(%d+)\") — extracts year-month-day\n  str:match(\"(%S+)@(%S+)\") — extracts user and domain from email\n  str:gsub(\"%s+\", \" \") — collapse multiple spaces into one"
+  },
+  {
+    "category": "lua_reference",
+    "text": "Lua control flow reference:\n- if cond then ... elseif cond then ... else ... end\n- while cond do ... end\n- for i = start, stop, step do ... end (numeric for)\n- for k, v in pairs(t) do ... end (generic for)\n- for i, v in ipairs(t) do ... end (array for)\n- repeat ... until cond\n- break (exit loop)\n- return value (exit function/script)\n- do ... end (block scope for local variables)"
+  },
+  {
+    "category": "lua_reference",
+    "text": "Lua error handling reference:\n- pcall(func, args...): protected call, returns ok, result_or_error\n- xpcall(func, handler, args...): protected call with error handler\n- error(message): raise an error\n- assert(condition, message): raise error if condition is falsy\nUsage:\nlocal ok, result = pcall(function()\n  return riskyOperation()\nend)\nif not ok then\n  return \"Error: \" .. tostring(result)\nend\nreturn result"
+  },
+  {
+    "category": "lua_reference",
+    "text": "Lua operators reference:\nArithmetic: + - * / % ^ (power) // (integer division)\nComparison: == ~= (not equal) < > <= >=\nLogical: and or not\nString concatenation: ..\nLength: # (for strings and arrays)\nNote: Lua has no ternary operator. Use: local x = condition and valueIfTrue or valueIfFalse\nCaution: this fails if valueIfTrue is false or nil."
+  },
+
+  {
+    "category": "example",
+    "text": "Task: Добавь обработку nil к существующему коду, который обращается к вложенным полям.\nExisting code:\nlocal city = wf.vars.user.address.city\nreturn string.upper(city)\nLua code (modified):\nlocal user = wf.vars.user\nif not user or not user.address or not user.address.city then\n  return nil\nend\nreturn string.upper(user.address.city)"
+  },
+  {
+    "category": "example",
+    "text": "Task: Измени существующий фильтр — добавь условие на минимальную цену 100.\nExisting code:\nlocal result = _utils.array.new()\nfor _, item in ipairs(wf.vars.products) do\n  if item.inStock == true then\n    table.insert(result, item)\n  end\nend\nreturn result\nLua code (modified):\nlocal result = _utils.array.new()\nfor _, item in ipairs(wf.vars.products) do\n  if item.inStock == true and (tonumber(item.price) or 0) >= 100 then\n    table.insert(result, item)\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: В существующий код добавь поле fullName в каждый объект результата.\nExisting code:\nlocal result = _utils.array.new()\nfor _, emp in ipairs(wf.vars.employees) do\n  table.insert(result, { id = emp.id, department = emp.department })\nend\nreturn result\nLua code (modified):\nlocal result = _utils.array.new()\nfor _, emp in ipairs(wf.vars.employees) do\n  local fullName = (emp.firstName or \"\") .. \" \" .. (emp.lastName or \"\")\n  table.insert(result, { id = emp.id, department = emp.department, fullName = fullName })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Замени условие в существующем коде — вместо проверки на 'active' проверяй на список допустимых статусов.\nExisting code:\nlocal count = 0\nfor _, user in ipairs(wf.vars.users) do\n  if user.status == \"active\" then\n    count = count + 1\n  end\nend\nreturn count\nLua code (modified):\nlocal allowed = {active = true, verified = true, premium = true}\nlocal count = 0\nfor _, user in ipairs(wf.vars.users) do\n  if allowed[user.status] then\n    count = count + 1\n  end\nend\nreturn count"
+  },
+  {
+    "category": "example",
+    "text": "Task: Извлеки все email-адреса из глубоко вложенной структуры отделов и сотрудников.\nContext: wf.vars.company = {\"departments\":[{\"name\":\"IT\",\"teams\":[{\"members\":[{\"email\":\"a@test.com\"},{\"email\":\"b@test.com\"}]},{\"members\":[{\"email\":\"c@test.com\"}]}]},{\"name\":\"HR\",\"teams\":[{\"members\":[{\"email\":\"d@test.com\"}]}]}]}\nLua code:\nlocal result = _utils.array.new()\nfor _, dept in ipairs(wf.vars.company.departments) do\n  if dept.teams then\n    for _, team in ipairs(dept.teams) do\n      if team.members then\n        for _, member in ipairs(team.members) do\n          if member.email and member.email ~= \"\" then\n            table.insert(result, member.email)\n          end\n        end\n      end\n    end\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Обнови цены на продукты внутри категорий внутри каталога — прибавь НДС 20%.\nContext: wf.vars.catalog = {\"categories\":[{\"name\":\"Electronics\",\"products\":[{\"name\":\"Phone\",\"price\":1000},{\"name\":\"Laptop\",\"price\":2000}]},{\"name\":\"Books\",\"products\":[{\"name\":\"Novel\",\"price\":500}]}]}\nLua code:\nlocal categories = wf.vars.catalog.categories\nfor _, cat in ipairs(categories) do\n  if cat.products then\n    for _, product in ipairs(cat.products) do\n      local price = tonumber(product.price) or 0\n      product.priceWithVat = math.floor(price * 1.2)\n    end\n  end\nend\nreturn wf.vars.catalog"
+  },
+  {
+    "category": "example",
+    "text": "Task: Из вложенной структуры заказов извлеки уникальные SKU товаров со статусом 'shipped'.\nContext: wf.vars.orders = [{\"status\":\"shipped\",\"items\":[{\"sku\":\"A1\"},{\"sku\":\"B2\"}]},{\"status\":\"pending\",\"items\":[{\"sku\":\"C3\"}]},{\"status\":\"shipped\",\"items\":[{\"sku\":\"A1\"},{\"sku\":\"D4\"}]}]\nLua code:\nlocal seen = {}\nlocal result = _utils.array.new()\nfor _, order in ipairs(wf.vars.orders) do\n  if order.status == \"shipped\" and order.items then\n    for _, item in ipairs(order.items) do\n      if item.sku and not seen[item.sku] then\n        seen[item.sku] = true\n        table.insert(result, item.sku)\n      end\n    end\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Распарси строку с параметрами вида 'key1=val1&key2=val2' в таблицу.\nContext: wf.vars.queryString = \"name=Ivan&age=30&city=Moscow\"\nLua code:\nlocal str = wf.vars.queryString or \"\"\nlocal result = {}\nfor pair in string.gmatch(str, \"([^&]+)\") do\n  local key, value = string.match(pair, \"([^=]+)=(.*)\")\n  if key then\n    result[key] = value\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Для каждого заказа посчитай общую сумму, количество товаров и среднюю цену.\nContext: wf.vars.orders = [{\"id\":1,\"items\":[{\"price\":100,\"qty\":2},{\"price\":200,\"qty\":1}]},{\"id\":2,\"items\":[{\"price\":50,\"qty\":5}]}]\nLua code:\nlocal result = _utils.array.new()\nfor _, order in ipairs(wf.vars.orders) do\n  local total = 0\n  local totalQty = 0\n  for _, item in ipairs(order.items) do\n    local price = tonumber(item.price) or 0\n    local qty = tonumber(item.qty) or 0\n    total = total + price * qty\n    totalQty = totalQty + qty\n  end\n  local avg = totalQty > 0 and math.floor(total / totalQty) or 0\n  table.insert(result, {\n    id = order.id,\n    total = total,\n    itemCount = totalQty,\n    avgPrice = avg\n  })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Рекурсивно найди все значения по ключу 'email' во вложенной структуре произвольной глубины.\nContext: wf.vars.data — произвольная вложенная структура.\nLua code:\nlocal emails = _utils.array.new()\nlocal function findEmails(obj)\n  if type(obj) ~= \"table\" then return end\n  for k, v in pairs(obj) do\n    if k == \"email\" and type(v) == \"string\" and v ~= \"\" then\n      table.insert(emails, v)\n    elseif type(v) == \"table\" then\n      findEmails(v)\n    end\n  end\nend\nfindEmails(wf.vars.data)\nreturn emails"
+  },
+  {
+    "category": "example",
+    "text": "Task: Преобразуй плоский массив объектов с parent_id в дерево.\nContext: wf.vars.items = [{\"id\":1,\"name\":\"Root\",\"parent_id\":nil},{\"id\":2,\"name\":\"Child1\",\"parent_id\":1},{\"id\":3,\"name\":\"Child2\",\"parent_id\":1},{\"id\":4,\"name\":\"SubChild\",\"parent_id\":2}]\nLua code:\nlocal items = wf.vars.items\nlocal byId = {}\nfor _, item in ipairs(items) do\n  item.children = _utils.array.new()\n  byId[item.id] = item\nend\nlocal roots = _utils.array.new()\nfor _, item in ipairs(items) do\n  if item.parent_id and byId[item.parent_id] then\n    table.insert(byId[item.parent_id].children, item)\n  else\n    table.insert(roots, item)\n  end\nend\nreturn roots"
+  },
+  {
+    "category": "example",
+    "text": "Task: Маппинг данных: преобразуй массив из одного формата API в другой с переименованием полей и вычисляемыми значениями.\nContext: wf.vars.sourceData = [{\"user_name\":\"ivan\",\"created_at\":\"2024-01-15\",\"amount_cents\":15000},{\"user_name\":\"anna\",\"created_at\":\"2024-02-20\",\"amount_cents\":7500}]\nLua code:\nlocal result = _utils.array.new()\nfor _, row in ipairs(wf.vars.sourceData) do\n  local amountRub = math.floor((tonumber(row.amount_cents) or 0) / 100)\n  table.insert(result, {\n    userName = row.user_name,\n    date = row.created_at,\n    amount = amountRub,\n    currency = \"RUB\"\n  })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Валидируй данные формы: проверь email-формат, обязательные поля и длину строки.\nContext: wf.vars.form = {\"email\":\"test@mail.ru\",\"name\":\"Ivan\",\"phone\":\"+71234567890\",\"comment\":\"\"}\nLua code:\nlocal form = wf.vars.form\nlocal errors = _utils.array.new()\nif not form.name or form.name == \"\" then\n  table.insert(errors, \"name is required\")\nend\nif not form.email or not string.match(form.email, \".+@.+%..+\") then\n  table.insert(errors, \"invalid email format\")\nend\nif not form.phone or #form.phone < 10 then\n  table.insert(errors, \"phone must be at least 10 characters\")\nend\nif form.comment and #form.comment > 500 then\n  table.insert(errors, \"comment is too long (max 500)\")\nend\nreturn { isValid = #errors == 0, errors = errors }"
+  },
+  {
+    "category": "example",
+    "text": "Task: Группировка с агрегацией: сгруппируй продажи по месяцу и посчитай сумму и количество.\nContext: wf.vars.sales = [{\"date\":\"2024-01-10\",\"amount\":100},{\"date\":\"2024-01-25\",\"amount\":200},{\"date\":\"2024-02-05\",\"amount\":150}]\nLua code:\nlocal groups = {}\nlocal order = _utils.array.new()\nfor _, sale in ipairs(wf.vars.sales) do\n  local month = string.sub(sale.date, 1, 7)\n  if not groups[month] then\n    groups[month] = { month = month, total = 0, count = 0 }\n    table.insert(order, month)\n  end\n  groups[month].total = groups[month].total + (tonumber(sale.amount) or 0)\n  groups[month].count = groups[month].count + 1\nend\nlocal result = _utils.array.new()\nfor _, m in ipairs(order) do\n  table.insert(result, groups[m])\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Мерж двух массивов объектов по общему полю id — объедини данные.\nContext: wf.vars.users = [{\"id\":1,\"name\":\"Ivan\"},{\"id\":2,\"name\":\"Anna\"}], wf.vars.orders = [{\"userId\":1,\"total\":500},{\"userId\":2,\"total\":300},{\"userId\":1,\"total\":200}]\nLua code:\nlocal userMap = {}\nfor _, user in ipairs(wf.vars.users) do\n  userMap[user.id] = { name = user.name, totalOrders = 0, totalAmount = 0 }\nend\nfor _, order in ipairs(wf.vars.orders) do\n  local u = userMap[order.userId]\n  if u then\n    u.totalOrders = u.totalOrders + 1\n    u.totalAmount = u.totalAmount + (tonumber(order.total) or 0)\n  end\nend\nlocal result = _utils.array.new()\nfor id, data in pairs(userMap) do\n  table.insert(result, { id = id, name = data.name, totalOrders = data.totalOrders, totalAmount = data.totalAmount })\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Разбей массив на чанки (подмассивы) заданного размера.\nContext: wf.vars.items = [1,2,3,4,5,6,7], wf.vars.chunkSize = 3\nLua code:\nlocal items = wf.vars.items\nlocal size = tonumber(wf.vars.chunkSize) or 1\nlocal result = _utils.array.new()\nlocal chunk = _utils.array.new()\nfor i, item in ipairs(items) do\n  table.insert(chunk, item)\n  if #chunk >= size or i == #items then\n    table.insert(result, chunk)\n    chunk = _utils.array.new()\n  end\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Для массива строк примени маску — замени email-адреса на '***@domain'.\nContext: wf.vars.texts = [\"Контакт: ivan@mail.ru\",\"Напиши на test@gmail.com\",\"Нет email тут\"]\nLua code:\nlocal result = _utils.array.new()\nfor _, text in ipairs(wf.vars.texts) do\n  local masked = string.gsub(text, \"(%S+)@(%S+)\", \"***@%2\")\n  table.insert(result, masked)\nend\nreturn result"
+  },
+  {
+    "category": "example",
+    "text": "Task: Реализуй пагинацию — верни срез массива по номеру страницы и размеру.\nContext: wf.vars.allItems — большой массив, wf.vars.page = 2, wf.vars.pageSize = 5\nLua code:\nlocal items = wf.vars.allItems or {}\nlocal page = tonumber(wf.vars.page) or 1\nlocal pageSize = tonumber(wf.vars.pageSize) or 10\nlocal startIdx = (page - 1) * pageSize + 1\nlocal endIdx = startIdx + pageSize - 1\nlocal result = _utils.array.new()\nfor i = startIdx, math.min(endIdx, #items) do\n  table.insert(result, items[i])\nend\nreturn {\n  items = result,\n  page = page,\n  pageSize = pageSize,\n  totalItems = #items,\n  totalPages = math.ceil(#items / pageSize)\n}"
+  },
+
+  {
+    "category": "example",
+    "text": "Task: Конвертируй время в переменной recallTime в unix-формат (epoch seconds).\nContext: wf.initVariables.recallTime = \"2023-10-15T15:30:00+00:00\"\nIMPORTANT: os.time, os.date are FORBIDDEN. Compute epoch manually.\nLua code:\nlocal function is_leap(y)\n  return (y % 4 == 0 and y % 100 ~= 0) or (y % 400 == 0)\nend\nlocal function days_in_month(m, y)\n  local t = {31, is_leap(y) and 29 or 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}\n  return t[m]\nend\nlocal function iso_to_epoch(iso_str)\n  local year, month, day, hour, min, sec =\n    iso_str:match(\"(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)\")\n  if not year then return nil end\n  year = tonumber(year); month = tonumber(month); day = tonumber(day)\n  hour = tonumber(hour); min = tonumber(min); sec = tonumber(sec)\n  local days = 0\n  for y = 1970, year - 1 do\n    days = days + (is_leap(y) and 366 or 365)\n  end\n  for m = 1, month - 1 do\n    days = days + days_in_month(m, year)\n  end\n  days = days + (day - 1)\n  local epoch = days * 86400 + hour * 3600 + min * 60 + sec\n  local sign, oh, om = iso_str:match(\"([+-])(%d%d):(%d%d)$\")\n  if sign then\n    local offset = tonumber(oh) * 3600 + tonumber(om) * 60\n    if sign == \"+\" then epoch = epoch - offset else epoch = epoch + offset end\n  end\n  return epoch\nend\nlocal iso_time = wf.initVariables.recallTime\nif not iso_time or not iso_time:match(\"^%d%d%d%d%-\") then\n  return nil\nend\nreturn iso_to_epoch(iso_time)\nExpected: 1697383800"
+  },
+
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Manual date/time to Unix epoch conversion.\nIMPORTANT: os.time() and os.date() are FORBIDDEN in this runtime.\nAlways compute epoch manually using arithmetic:\n1. Count days from 1970 to target year (account for leap years)\n2. Add days for months (account for Feb in leap years)\n3. Add remaining days, hours, minutes, seconds\n4. Parse and apply timezone offset\n\nHelper functions needed:\n- is_leap(y): (y%4==0 and y%100~=0) or (y%400==0)\n- days_in_month(m,y): lookup table {31,28/29,31,30,...}\n- iso_to_epoch(iso_str): parse with :match(), sum days*86400+h*3600+m*60+s, apply offset"
+  },
+
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Safe deep field access with fallback.\nlocal function safeGet(obj, ...)\n  local current = obj\n  for _, key in ipairs({...}) do\n    if type(current) ~= \"table\" then return nil end\n    current = current[key]\n  end\n  return current\nend\nUsage: local city = safeGet(wf.vars, \"user\", \"address\", \"city\") or \"unknown\""
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Iterating with accumulator and early exit.\nlocal found = nil\nfor _, item in ipairs(wf.vars.items) do\n  if item.id == targetId then\n    found = item\n    break\n  end\nend\nreturn found\n\nWith accumulator:\nlocal sum, count = 0, 0\nfor _, item in ipairs(wf.vars.data) do\n  local val = tonumber(item.value) or 0\n  sum = sum + val\n  count = count + 1\nend\nreturn { sum = sum, avg = count > 0 and sum / count or 0 }"
+  },
+  {
+    "category": "pattern",
+    "text": "Common Lua pattern: Modifying existing code.\nWhen asked to modify existing code:\n1. Keep all parts that are not mentioned in the change request.\n2. Only add/remove/change the specific part requested.\n3. Preserve variable names and code style.\n4. If adding a condition, wrap the existing logic; don't rewrite from scratch.\n5. If adding a field, add it to the existing table constructor or loop.\nExample: 'Add error handling' = wrap body in pcall, keep everything else."
+  }
+]
