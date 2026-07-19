@@ -3,6 +3,10 @@
 A fully local AI agent system that generates Lua code from natural language prompts
 (Russian and English). Runs entirely on your own infrastructure with no external API calls.
 
+## Demo
+
+![LocalScript demo](docs/demo.png)
+
 ## Architecture
 
 ```
